@@ -1,0 +1,279 @@
+---
+title: "Funksjoner og Versjonskontroll"
+author: "Robin Andersen"
+date: "24 10 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(lubridate)
+library(purrr)
+```
+
+## Problem 2 - Enkle funksjoner
+
+```{r}
+x <- c(10, 20, 30)
+y1 <- c(1, 2, 3, 10)
+y2 <- c(4, 5, 6, 23)
+```
+
+```{r}
+#2.1
+add_two <- function(a,b){
+  if(length(a)!= length(b)){
+    return(paste0("de to størrelsene har ikke samme dimensjoner :", length(a), length(b)))
+  }
+  a+b
+}
+add_two(y1,y2)
+```
+
+### 2.2
+```{r}
+mult_two <- function(a,b){
+  if(length(a)!= length(b)){
+    return(paste0("de to størrelsene har ikke samme dimensjoner :", length(a), length(b)))
+  }
+  a*b
+}
+mult_two(y1,y2)
+```
+
+### 2.3 - returnerer "input x missing with no default e.l."
+```{r}
+kvadrer_x <- function(x=NA) {
+  if(is.na(x)){ return("x er ikke et tall, men NA!")
+    }
+  x^2
+}
+print(kvadrer_x())
+kvadrer_x(x)
+```
+
+### 2.4
+For kontinuerlige stokastiske variable, brukes "Pearson-R". De andre er brukt for ordinal data.
+
+
+### 2.5
+```{r}
+includes_two <- function(x){
+  2 %in% x
+}
+includes_two(y1)
+includes_two(y2)
+```
+
+### 2.6
+Disse overskriver allerede eksisterende funksjoner i base.
+
+### 2.7 - oddetall(x) er det logiske komplementet til partall(x)
+```{r}
+is_even <- function(x){
+  x %% 2 == 0
+}
+is_even(x)
+```
+
+### 2.8 
+ifelse brukes når man skal dekke alle tilfeller med en angitt assignment. if tar kun hensyn til ett spesifikt tilfelle, men sier ingenting om hva som skjer ellers.
+
+### 2.9 - legger på dobbel mengdeparentes
+```{r}
+lag_histogram <-  function(.data, variabel) {
+  
+  .data %>% 
+    ggplot(aes(x = {{variabel}})) + 
+    geom_histogram()
+  
+}
+lag_histogram(mtcars, cyl)
+```
+
+## Problem 3 - Problem 8:
+Står over disse - lite læringsutbytte.
+
+## Problem 9
+```{r, echo=FALSE}
+
+file_paths <- fs::dir_ls(path = "./Karakterer_per_fylke", regexp = "\\.csv$")
+df <- map_df(.x = file_paths, .f = readr::read_csv2) 
+
+tidy_df <- df %>% 
+  tidyr::separate(col = variabel, into = c("variabel","year"),sep = "_") %>% 
+  drop_na() %>% 
+  filter(variabel == "Gjennomsnittlig standpunktkarakter")
+
+top_ten_fylke <- function(df, years, kjonn = "Begge kjønn"){
+  df %>% 
+    group_by(fylke) %>% 
+    summarise(snitt = mean(values)) %>% 
+    select(fylke, snitt) %>% 
+    arrange(desc(snitt)) %>% 
+    top_n(10)
+}
+
+tidy_df %>% top_ten_fylke(seq(2014,2016))
+
+```
+## Problem 10
+```{r}
+lag_plot <- function(df, x, y, group,  theme = theme_bw(), color = "Pink"){
+  ggplot(df, aes(x = {{x}}, y ={{y}}, group = {{group}}, color = {{group}})) +
+    theme +
+    geom_point()
+}
+
+iris %>% 
+  lag_plot(Sepal.Length, Sepal.Width, Species)
+```
+
+## Problem 11
+```{r}
+# (a)
+mpg_to_kpl <- function(mpg){
+  km_per_mile <- 1.6
+  gallon_per_litre <- 2.7
+  mpg*gallon_per_litre*km_per_mile
+}
+
+# (b)
+plot_kpl <- function(y, theme = theme_bw(), color = "Pink"){
+  mtcars %>% 
+    ggplot(aes(x = mpg_to_kpl(mpg), y = {{y}}, color = color)) +
+    geom_point() + 
+    theme
+}
+
+plot_kpl(cyl)
+```
+
+## Problem 12
+```{r}
+if (!require(quantmod)) {
+  install.packages("quantmod")
+}
+
+if (!require(reshape)) {
+  install.packages("reshape")
+}
+
+# Last ned aksjedata
+quantmod::getSymbols(c("GOOGL", "AAPL", "FB"), from = "2019-01-01")
+
+# Lag liste av dataframes. Gjør radnavn til kolonne med navn "Dato"
+list_of_df <- map(.x = list(FB = FB, GOOGL = GOOGL, AAPL = AAPL), 
+                  .f = ~(rownames_to_column(.data = as.data.frame(.), 
+                                            var = "Dato")))
+
+# Join alle dfs på Dato
+df_stocks <- reshape::merge_recurse(list_of_df)
+
+# Plot
+df_stocks %>% 
+  select(Dato, contains("Close")) %>% 
+  pivot_longer(-Dato, names_to = "Stock", values_to = "Close_rescaled") %>% 
+  ggplot(aes(x = as.Date(Dato), y = Close_rescaled, col = Stock, group = Stock)) + 
+  geom_line() + 
+  theme_bw()
+
+scale_to_100 <- function(v){
+  v*(100/v[1])
+}
+
+df_stocks %>% 
+  filter(as_date(Dato) >= as_date("2019-02-01")) %>% 
+  arrange(as_date(Dato)) %>% 
+  mutate(
+    AAPL.Close = scale_to_100(AAPL.Close),
+    FB.Close = scale_to_100(FB.Close),
+    GOOGL.Close = scale_to_100(GOOGL.Close)
+  ) %>%
+  select(Dato, contains("Close")) %>% 
+  pivot_longer(-Dato, names_to = "Stock", values_to = "Close_rescaled") %>% 
+  ggplot(aes(x = as.Date(Dato), y = Close_rescaled, col = Stock, group = Stock)) + 
+  geom_line() + 
+  theme_bw()
+
+```
+
+## Problem 13
+```{r}
+#Bytter ut de nchar(prefix) første tegnene i string med prefix.
+replace_prefix <- function(string, prefix) {
+  substr(string, 1, nchar(prefix)) == prefix
+}
+
+#Fjerner siste elementet i en vektor/liste.
+remove_last <- function(x) {
+  if (length(x) <= 1) return(NULL)
+  x[-length(x)]
+}
+
+#Lager en liste bestående av repetisjoner av y slik at lengden på vektoren blir lik lengden til x.
+#Hvis y er en skalar, returnerer funksjonen en vektor med length(x) elementer der alle elementene er y.
+rep_y_to_length_x <- function(x, y) {
+  rep(y, length.out = length(x))
+}
+
+#Lager en vektor der den gjør transformasjonen min(max(x[i],y[i]),z[i]) for alle dimensjoner i (x, y og z må ha like mange dimensjoner).
+minimax:vector <- function(x, y, z) {
+  pmin(pmax(x, y), z)
+}
+```
+
+## Problem 14
+```{r}
+# out <- ""
+# for (x in letters) {
+#   out <- stringr::str_c(out, x)
+# }
+
+print(purrr::accumulate(.x =letters, .f = str_c))
+#--------------------------------------
+x <- sample(100)
+# sd <- 0
+# for (i in seq_along(x)) {
+#   sd <- sd + (x[i] - mean(x)) ^ 2
+# }
+# sd <- sqrt(sd / (length(x) - 1))
+
+print((x-mean(x))^2/(length(x)-1))
+#------------------------------------
+x <- runif(100)
+# out <- vector("numeric", length(x))
+# out[1] <- x[1]
+# for (i in 2:length(x)) {
+#   out[i] <- out[i - 1] + x[i]
+# }
+
+purrr::accumulate(.x = x, .f = sum)
+```
+
+## Problem 16
+```{r}
+#Feil her! Skal fikses.
+which_max <- function(object){
+  imap(.x = object,  .f = map(.x = object, .f = max))
+}
+
+which_max(x)
+
+```
+## Problem 17
+
+```{r}
+#17.1
+purrr::map_dbl(.x = mtcars, .f = mean)
+
+
+```
+
+
+
+
+
+
