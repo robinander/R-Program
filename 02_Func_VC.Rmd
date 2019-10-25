@@ -255,22 +255,34 @@ purrr::accumulate(.x = x, .f = sum)
 
 ## Problem 16
 ```{r}
-#Feil her! Skal fikses.
-which_max <- function(object){
-  imap(.x = object,  .f = map(.x = object, .f = max))
-}
-
-which_max(x)
+# #Feil her! Skal fikses.
+# which_max <- function(object){
+#   reduce(.x = ,  .f = imap())
+# }
+# 
+# which_max(x)
 
 ```
 ## Problem 17
-
 ```{r}
 #17.1
 purrr::map_dbl(.x = mtcars, .f = mean)
 
 
 ```
+
+## Problem 18
+```{r}
+mean_df_cols <- function(df){
+  df %>%
+    select_if(is.numeric) %>% 
+    map_df(.f = mean)
+}
+
+df <- as.data.frame(cbind(seq(1:10),seq(1:10)))
+mean_df_cols(df)
+```
+
 
 
 
