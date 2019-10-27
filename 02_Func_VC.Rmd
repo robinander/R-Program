@@ -220,7 +220,7 @@ rep_y_to_length_x <- function(x, y) {
 }
 
 #Lager en vektor der den gjør transformasjonen min(max(x[i],y[i]),z[i]) for alle dimensjoner i (x, y og z må ha like mange dimensjoner).
-minimax:vector <- function(x, y, z) {
+minimax_vector <- function(x, y, z) {
   pmin(pmax(x, y), z)
 }
 ```
@@ -232,7 +232,7 @@ minimax:vector <- function(x, y, z) {
 #   out <- stringr::str_c(out, x)
 # }
 
-print(purrr::accumulate(.x =letters, .f = str_c))
+print(purrr::reduce(.x =letters, .f = str_c))
 #--------------------------------------
 x <- sample(100)
 # sd <- 0
@@ -255,20 +255,39 @@ purrr::accumulate(.x = x, .f = sum)
 
 ## Problem 16
 ```{r}
-# #Feil her! Skal fikses.
-# which_max <- function(object){
-#   reduce(.x = ,  .f = imap())
-# }
-# 
-# which_max(x)
+# Løsningsforslag:
+which_max <- function(object){
+  seq(1,length(object))[object == max(object)][1]
+}
 
 ```
 ## Problem 17
 ```{r}
 #17.1
 purrr::map_dbl(.x = mtcars, .f = mean)
+```
 
+```{r}
+#17.2
+map_dbl(.x = mtcars, .f = mean, trim = 0.1)
+```
 
+```{r}
+#17.3
+map(nycflights13::flights, class)
+```
+
+```{r}
+# 17.4
+map_dbl(iris, n_distinct)
+```
+
+```{r}
+# 17.5
+# (1) 
+print(map(1:4, ~ .^2))
+# (2) Fungerte ikke med .^2 her! - Sjekk ut hvorfor
+map_int(1:10, ~ .*.)
 ```
 
 ## Problem 18
@@ -281,6 +300,53 @@ mean_df_cols <- function(df){
 
 df <- as.data.frame(cbind(seq(1:10),seq(1:10)))
 mean_df_cols(df)
+```
+
+## Problem 19
+```{r}
+if (!require(ranger)) {
+  install.packages("ranger")
+}
+
+mod_ranger <- ranger(Species ~ ., 
+                     data = iris, 
+                     importance = "permutation")
+
+var_imp <- function(m) {
+  m %>% 
+    importance() %>% 
+    enframe() %>% 
+    ggplot(aes(x = fct_reorder(name, value), y = value)) + 
+    geom_bar(stat = "identity", fill = "Pink", colour = "Orange") + 
+    labs(x = "Feature", y = "Importance") + 
+    coord_flip() + 
+    theme_bw()
+}
+
+  mod_ranger %>% var_imp()
+```
+
+## Problem 20
+```{r}
+model_lm <- lm(mpg ~ ., data = mtcars)
+model_rf <- ranger::ranger(mpg ~ ., data = mtcars)
+
+df <- tibble(truth = mtcars$mpg, 
+             prediction1 = model_lm$fitted.values, 
+             prediction2 = model_rf$predictions)
+
+
+dual_lift <- function(df, m1, m2, B = 10) {
+  df %>% 
+    group_by(q = ntile({{m1}} - {{m2}}, n = B)) %>% 
+    summarise_all(mean)
+}
+
+dual_lift(df, prediction1, prediction2) %>% 
+    pivot_longer(cols = c("truth", "prediction1", "prediction2"), names_to = "val") %>% 
+    ggplot(aes(x = factor(q), y = value, group = val, color = val)) +
+    geom_path() + 
+    theme_bw()
 ```
 
 
