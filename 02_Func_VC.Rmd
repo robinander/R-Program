@@ -11,6 +11,19 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(lubridate)
 library(purrr)
+
+
+# JP:
+# Hei Robin! 
+# Jeg skjønner at du hadde dårlig tid til disse hjemmeoppgavene, det er helt ok. 
+# Jeg har lagt inn noen kommentarer på det du har gjort som jeg håper er nyttige.
+# Ta ellers en titt på løsningsforslaget dersom du ikke alt har gjort det. 
+# 
+# PS: Siden du er såpass rå på maskinlæring burde du absolutt prøve deg på oppgave
+# 19 og 20 en gang. 
+
+
+
 ```
 
 ## Problem 2 - Enkle funksjoner
@@ -22,6 +35,13 @@ y2 <- c(4, 5, 6, 23)
 ```
 
 ```{r}
+
+# JP:
+# Bra at du legger inn feilmeldinger. Ville bare tipse om at "length(a), length(b)" 
+# her returnerer ett tall, noe som ikke hjelper meg i å finne feilen. f.eks. 
+# > add_two(c(1:3), 1)
+# "de to størrelsene har ikke samme dimensjoner : 31". Gjelder også neste oppgave.
+
 #2.1
 add_two <- function(a,b){
   if(length(a)!= length(b)){
@@ -60,6 +80,10 @@ For kontinuerlige stokastiske variable, brukes "Pearson-R". De andre er brukt fo
 
 ### 2.5
 ```{r}
+
+# JP:
+# Enkelt og greit - bra :-)
+
 includes_two <- function(x){
   2 %in% x
 }
@@ -70,16 +94,39 @@ includes_two(y2)
 ### 2.6
 Disse overskriver allerede eksisterende funksjoner i base.
 
+```{r}
+# JP:
+# Korrekt
+```
+
+
 ### 2.7 - oddetall(x) er det logiske komplementet til partall(x)
 ```{r}
 is_even <- function(x){
   x %% 2 == 0
 }
 is_even(x)
+
+# JP:
+# Enkelt og greit - bra! 
+# Riktig mtp oddetall og partall. Dermed kan man finne oddetall (f.eks. i 
+# filtreringer) med "!is_even(x)". 
+
 ```
 
 ### 2.8 
 ifelse brukes når man skal dekke alle tilfeller med en angitt assignment. if tar kun hensyn til ett spesifikt tilfelle, men sier ingenting om hva som skjer ellers.
+
+```{r}
+# JP:
+# Riktig, men en enda viktigere forskjell er at ifelse er vektorisert, mens 
+# if kun evaluerer ett uttrykk. Derfor kan if / else brukes som control flow i 
+# script/funksjoner, mens ifelse gjerne brukes til vektorisert variabeltransformasjon.
+
+
+```
+
+
 
 ### 2.9 - legger på dobbel mengdeparentes
 ```{r}
@@ -95,6 +142,15 @@ lag_histogram(mtcars, cyl)
 
 ## Problem 3 - Problem 8:
 Står over disse - lite læringsutbytte.
+
+```{r}
+
+# JP:
+# Tror jeg du gjør rett i :-) ikke alle som har programmert så mye som deg.
+# Les gjerne over løsningsforslaget likevel.
+
+```
+
 
 ## Problem 9
 ```{r, echo=FALSE}
@@ -118,6 +174,15 @@ top_ten_fylke <- function(df, years, kjonn = "Begge kjønn"){
 
 tidy_df %>% top_ten_fylke(seq(2014,2016))
 
+# JP:
+# Bra - særlig data ryddingen - helt likt som jeg har gjort det ;) 
+# Det er sikkert bare mangel på tid, men i funksjonen din kan jeg ikke se at
+# years eller kjonn gjør noe. Hadde du fått tid til å implementere dette hadde 
+# det blitt bra! 
+# Tips: Her hardkoder man 'top_n(10)' i funksjonen. Funksjonen kunne blitt enda
+# mer fleksibel ved å ha dette som er argument med default lik 10 (da burde man 
+# skiftet navn på funksjonen til top_n_fylke også.)
+
 ```
 ## Problem 10
 ```{r}
@@ -129,6 +194,13 @@ lag_plot <- function(df, x, y, group,  theme = theme_bw(), color = "Pink"){
 
 iris %>% 
   lag_plot(Sepal.Length, Sepal.Width, Species)
+
+# JP:
+# Bra!
+# Sikkert bare dårlig tid igjen, men input argumentet 'color' gjør ingenting, og 
+# group i aes() er unødvendig ved bruk av geom_point, mer vanlig ved bruk av 
+# geom_lines f.eks. (men her brukes input argument group med color, som blir bra).
+
 ```
 
 ## Problem 11
@@ -149,6 +221,15 @@ plot_kpl <- function(y, theme = theme_bw(), color = "Pink"){
 }
 
 plot_kpl(cyl)
+
+# JP:
+# Bra! 
+# Tips: Merk at alt inne i aes() bør henvise til kolonner i datasettet. Her er
+# color = "Pink", noe ggplot tolker som en kolonne hvor alle verdiene er lik "pink",
+# derfor får man i legend "color: pink", og alle punktene får samme farge. Fargen
+# er også en standardfarge, og har ingenting med fargen rosa å gjøre. Prøv f.eks.
+# plot_kpl(cyl, color = "blue") som gir helt samme plot og farge.
+
 ```
 
 ## Problem 12
@@ -198,6 +279,9 @@ df_stocks %>%
   geom_line() + 
   theme_bw()
 
+# JP:
+# Bra!
+
 ```
 
 ## Problem 13
@@ -206,6 +290,10 @@ df_stocks %>%
 replace_prefix <- function(string, prefix) {
   substr(string, 1, nchar(prefix)) == prefix
 }
+
+# JP:
+# Ikke helt. Funksjonen sjekker om de nchar(prefix) første tegne i string er lik
+# prefix. F.eks. f1("2019_Innteker", "2019") --> TRUE
 
 #Fjerner siste elementet i en vektor/liste.
 remove_last <- function(x) {
@@ -223,6 +311,10 @@ rep_y_to_length_x <- function(x, y) {
 minimax:vector <- function(x, y, z) {
   pmin(pmax(x, y), z)
 }
+
+# JP:
+# Resten var korrekt :)
+
 ```
 
 ## Problem 14
@@ -233,6 +325,12 @@ minimax:vector <- function(x, y, z) {
 # }
 
 print(purrr::accumulate(.x =letters, .f = str_c))
+
+# JP:
+# Ikke helt. Koden over genererer kun "abcdefghijklmnopqrstuvwxyz", altså siste
+# element fra koden din. Se løsningsforslag. 
+
+
 #--------------------------------------
 x <- sample(100)
 # sd <- 0
@@ -242,6 +340,12 @@ x <- sample(100)
 # sd <- sqrt(sd / (length(x) - 1))
 
 print((x-mean(x))^2/(length(x)-1))
+
+# JP:
+# Nesten. Din kode returnerer en vektor av lengde 100. Den opprinnelige koden 
+# returnerer en vektor av lengde 1. Du mangler å ta kvadratroten av summen av 
+# uttrykket ditt. Se løsningsforslag. 
+
 #------------------------------------
 x <- runif(100)
 # out <- vector("numeric", length(x))
@@ -251,6 +355,10 @@ x <- runif(100)
 # }
 
 purrr::accumulate(.x = x, .f = sum)
+
+# JP:
+# Korrekt
+
 ```
 
 ## Problem 16
@@ -261,6 +369,9 @@ which_max <- function(object){
 }
 
 which_max(x)
+
+# JP:
+# Se løsningsforslag.
 
 ```
 ## Problem 17
